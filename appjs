@@ -1,0 +1,111 @@
+import React, { useState } from 'react';
+import { View, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+
+import TarifListesi from './screens/TariflerListesi';
+import TarifDetay from './screens/TarifDetay';
+import Favoriler from './screens/Favoriler';
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+export default function App() {
+  const [favoriIdler, setFavoriIdler] = useState([]);
+
+  const toggleFavori = (id) => {
+    setFavoriIdler((onceki) => {
+      if (onceki.includes(id)) {
+        return onceki.filter((favId) => favId !== id);
+      } else {
+        return [...onceki, id];
+      }
+    });
+  };
+
+  function AnasayfaStack() {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="TarifListesi">
+          {(props) => (
+            <TarifListesi {...props} toggleFavori={toggleFavori} favoriIdler={favoriIdler} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="TarifDetay">
+          {(props) => <TarifDetay {...props} toggleFavori={toggleFavori} favoriIdler={favoriIdler} />}
+        </Stack.Screen>
+      </Stack.Navigator>
+    );
+  }
+
+  function FavorilerStack() {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="FavorilerListesi">
+          {(props) => <Favoriler {...props} favoriIdler={favoriIdler} toggleFavori={toggleFavori} />}
+        </Stack.Screen>
+        <Stack.Screen name="TarifDetay">
+          {(props) => <TarifDetay {...props} toggleFavori={toggleFavori} favoriIdler={favoriIdler} />}
+        </Stack.Screen>
+      </Stack.Navigator>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: '#FF69B4',
+          tabBarInactiveTintColor: '#D3C3B8',
+          tabBarStyle: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 90,
+            paddingBottom: 30,
+            paddingTop: 10,
+            backgroundColor: '#ffffff',
+          },
+          tabBarIcon: ({ focused, color }) => {
+            let iconName;
+            if (route.name === 'Anasayfa') {
+              iconName = focused ? 'restaurant' : 'restaurant-outline';
+            } else if (route.name === 'Favoriler') {
+              iconName = focused ? 'bookmark' : 'bookmark-outline';
+            }
+            return (
+              <View>
+                <Ionicons name={iconName} size={24} color={color} />
+                {route.name === 'Favoriler' && favoriIdler.length > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    right: -8,
+                    top: -4,
+                    backgroundColor: '#E91E63',
+                    borderRadius: 9,
+                    width: 16,
+                    height: 16,
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}>
+                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                      {favoriIdler.length}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            );
+          },
+          tabBarLabelStyle: { fontSize: 10, fontWeight: '600' }
+        })}
+      >
+        <Tab.Screen name="Anasayfa" component={AnasayfaStack} />
+        <Tab.Screen name="Favoriler" component={FavorilerStack} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
